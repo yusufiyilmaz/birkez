@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "birkez",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+
+  // Sayfalar, CSS ve tarayıcıdaki şifreleme kodu
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "birkez",
+      // Yayın adımında `wrangler d1 create birkez` çıktısındaki gerçek id ile değişecek
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Saatte bir süresi dolmuş notları temizle
+  "triggers": { "crons": ["0 * * * *"] }
+}

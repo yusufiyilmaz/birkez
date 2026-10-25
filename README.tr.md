@@ -25,7 +25,7 @@ Bir kez okunduktan sonra kendini imha eden notlar. Şifre, IBAN ya da Wi-Fi şif
 ## Yol haritası
 
 - [x] Tarayıcıda şifreleme / çözme
-- [ ] Sunucu (Cloudflare Workers + D1 veritabanı)
+- [x] Sunucu (Cloudflare Workers + D1 veritabanı)
 - [ ] Okuma sayfası ve "Notu göster" adımı
 - [ ] Süre sınırı ve isteğe bağlı ek parola
 - [ ] Testler

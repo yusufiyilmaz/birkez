@@ -5,7 +5,12 @@
   "type": "module",
   "description": "Self-destructing, end-to-end encrypted one-time notes",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "db:local": "wrangler d1 migrations apply birkez --local",
+    "dev": "wrangler dev --port 8791"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.152.0"
+  }
 }
