@@ -1,30 +1,32 @@
 # birkez
 
-Bir kez okunduktan sonra kendini imha eden notlar. Şifre, IBAN ya da Wi-Fi şifresi gibi bilgileri mesaj geçmişinde iz bırakmadan paylaşmak için.
+**English** | [Türkçe](README.tr.md)
 
-> 🚧 Yapım aşamasında
+Self-destructing notes that can be read only once. Share passwords, IBANs or Wi-Fi keys without leaving them in your chat history. *("birkez" means "once" in Turkish.)*
 
-## Nasıl çalışır
+> 🚧 Work in progress
 
-1. Notu yazarsın. Tarayıcın rastgele bir anahtar üretir ve notu **senin bilgisayarında** şifreler (AES-256-GCM).
-2. Sunucuya sadece şifreli hali gider. Sana şöyle bir link verilir:
+## How it works
+
+1. You write a note. Your browser generates a random key and encrypts the note **on your device** (AES-256-GCM).
+2. Only the encrypted note reaches the server. You get a link like:
    ```
-   https://not.yilmazyusuf.dev/n/Xk3p9Qa2#anahtar
+   https://not.yilmazyusuf.dev/n/Xk3p9Qa2#key
    ```
-3. Linki açan kişi "Notu göster"e basınca şifreli not sunucudan alınır ve **aynı anda silinir**. Tarayıcı, linkteki anahtarla notu çözer.
+3. When the recipient clicks "Show note", the encrypted note is fetched from the server and **deleted in the same operation**. The browser decrypts it with the key from the link.
 
-## Güvenlik modeli
+## Security model
 
-- **Sunucu notu okuyamaz.** Anahtar linkin `#` işaretinden sonraki kısmındadır; tarayıcılar bu kısmı sunucuya hiç göndermez. Veritabanı çalınsa bile elde edilen sadece anlamsız şifreli veridir.
-- **Tek okuma garantisi.** Not, okunduğu işlemde silinir (`DELETE ... RETURNING`); iki kişi aynı anda açmaya çalışsa bile sadece biri görür.
-- **Link önizleme botlarına karşı korumalı.** WhatsApp ya da Telegram linki önizlemek için açtığında not yanmaz; not ancak "Notu göster" butonuna basılınca alınır.
-- **Süre sınırı.** Okunmayan notlar seçilen süre (1 saat / 1 gün / 7 gün) dolunca silinir.
+- **The server cannot read notes.** The key lives in the part of the link after `#`, which browsers never send to the server. A stolen database contains only ciphertext.
+- **Read-once guarantee.** A note is deleted in the same query that reads it (`DELETE ... RETURNING`); even if two people open the link at the same moment, only one of them sees it.
+- **Safe from link-preview bots.** When WhatsApp or Telegram fetches the link to build a preview, the note is not burned; it is fetched only after the "Show note" button is pressed.
+- **Expiry.** Unread notes are deleted when the chosen time (1 hour / 1 day / 7 days) runs out.
 
-## Yol haritası
+## Roadmap
 
-- [ ] Tarayıcıda şifreleme / çözme
-- [ ] Sunucu (Cloudflare Workers + D1 veritabanı)
-- [ ] Okuma sayfası ve "Notu göster" adımı
-- [ ] Süre sınırı ve isteğe bağlı ek parola
-- [ ] Testler
-- [ ] Yayın: not.yilmazyusuf.dev
+- [ ] Encryption / decryption in the browser
+- [ ] Server (Cloudflare Workers + D1 database)
+- [ ] Read page with the "Show note" step
+- [ ] Expiry and optional extra password
+- [ ] Tests
+- [ ] Deploy: not.yilmazyusuf.dev
