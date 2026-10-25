@@ -1,0 +1,11 @@
+{
+  "name": "birkez",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-destructing, end-to-end encrypted one-time notes",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
