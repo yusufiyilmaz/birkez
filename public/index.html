@@ -3,35 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>birkez</title>
+  <title>birkez · bir kez okunan gizli notlar</title>
+  <meta name="description" content="Şifre, IBAN ya da Wi-Fi şifresini iz bırakmadan paylaş. Not tarayıcında şifrelenir, bir kez okununca silinir.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<main>
-  <h1>birkez</h1>
-  <p class="lead">Adım 2 demosu: not tarayıcında şifrelenir, sunucu sadece anlamsız veri görür.</p>
+<div class="page">
+  <a class="brand" href="/"><span class="brand-mark">b</span><span class="brand-name">birkez</span></a>
 
-  <div class="card">
-    <label for="note">Notun</label>
-    <textarea id="note" placeholder="Ör. Wi-Fi şifresi: ..."></textarea>
-    <button id="encrypt">Şifrele</button>
-    <p id="error" class="error" hidden></p>
-  </div>
+  <header class="hero">
+    <span class="badge">Bir kez okunur, sonra yok olur</span>
+    <h1>Şifre mi göndereceksin? <span>Link gönder, iz bırakma.</span></h1>
+    <p>Şifre, IBAN ya da Wi-Fi şifresini mesaj geçmişinde iz bırakmadan paylaş.</p>
+  </header>
 
-  <div id="out" class="card" hidden>
-    <label>Sunucuya gidecek olan (şifreli not)</label>
-    <p class="hint">Veritabanı çalınsa bile görülecek tek şey bu.</p>
-    <div id="cipher" class="box"></div>
+  <main>
+    <!-- 1. Not yazma -->
+    <form id="create" class="card">
+      <h2><label for="note">Gizli not oluştur</label></h2>
+      <textarea id="note" maxlength="10000" placeholder="Gizli notunu buraya yaz..." required></textarea>
+      <div class="counter"><span id="count">0</span> / 10.000</div>
+      <div class="row">
+        <fieldset class="ttl">
+          <legend>Silinme süresi:</legend>
+          <label class="chip"><input type="radio" name="ttl" value="3600"><span>1 saat</span></label>
+          <label class="chip"><input type="radio" name="ttl" value="86400" checked><span>1 gün</span></label>
+          <label class="chip"><input type="radio" name="ttl" value="604800"><span>7 gün</span></label>
+        </fieldset>
+        <button class="btn" id="submit" type="submit">Link oluştur</button>
+      </div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </form>
 
-    <label class="spaced">Sadece linkte kalan anahtar</label>
-    <p class="hint">Linkin # işaretinden sonraki kısmı. Tarayıcı bunu sunucuya hiç göndermez.</p>
-    <div id="key" class="box"></div>
+    <!-- 2. Link hazır -->
+    <section id="done" class="card" hidden>
+      <h2 class="ok">✓ Linkin hazır</h2>
+      <input id="link" class="field" readonly aria-label="Gizli not linki">
+      <div class="actions">
+        <button class="btn" id="copy" type="button">Linki kopyala</button>
+        <a class="btn btn-ghost" id="whatsapp" target="_blank" rel="noopener noreferrer">WhatsApp'ta gönder</a>
+        <button class="btn btn-ghost" id="again" type="button">Yeni not</button>
+      </div>
+      <p class="warn">Linki kendin açma: açtığın an not silinir ve alıcı göremez.</p>
+      <p class="note">Not, okunduğunda ya da <strong id="expires"></strong> okunmazsa kendiliğinden silinir. Bu link bir daha gösterilmeyecek.</p>
+    </section>
+  </main>
 
-    <button id="decrypt">Alıcı gibi çöz</button>
-    <p id="plain" class="result" hidden></p>
-  </div>
-</main>
-
-<script type="module" src="/demo.js"></script>
+  <footer class="trust">
+    <span>Uçtan uca şifreli</span>
+    <span>Kendini imha eder</span>
+    <span>Sunucu okuyamaz</span>
+    <a href="https://github.com/yusufiyilmaz/birkez" target="_blank" rel="noopener noreferrer">Açık kaynak</a>
+  </footer>
+</div>
+<script type="module" src="/app.js"></script>
 </body>
 </html>

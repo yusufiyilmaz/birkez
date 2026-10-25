@@ -26,7 +26,7 @@ Bir kez okunduktan sonra kendini imha eden notlar. Şifre, IBAN ya da Wi-Fi şif
 
 - [x] Tarayıcıda şifreleme / çözme
 - [x] Sunucu (Cloudflare Workers + D1 veritabanı)
-- [ ] Okuma sayfası ve "Notu göster" adımı
+- [x] Okuma sayfası ve "Notu göster" adımı
 - [ ] Süre sınırı ve isteğe bağlı ek parola
 - [ ] Testler
 - [ ] Yayın: not.yilmazyusuf.dev

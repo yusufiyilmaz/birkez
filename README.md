@@ -26,7 +26,7 @@ Self-destructing notes that can be read only once. Share passwords, IBANs or Wi-
 
 - [x] Encryption / decryption in the browser
 - [x] Server (Cloudflare Workers + D1 database)
-- [ ] Read page with the "Show note" step
+- [x] Read page with the "Show note" step
 - [ ] Expiry and optional extra password
 - [ ] Tests
 - [ ] Deploy: not.yilmazyusuf.dev

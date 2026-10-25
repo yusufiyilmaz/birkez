@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sana bir gizli not var · birkez</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="page">
+  <a class="brand" href="/"><span class="brand-mark">b</span><span class="brand-name">birkez</span></a>
+
+  <main class="hero-space">
+    <!-- Yükleniyor -->
+    <section id="loading" class="card center"><p class="note">Not kontrol ediliyor...</p></section>
+
+    <!-- 1. Onay: not henüz alınmadı, link önizlemeleri notu yakamaz -->
+    <section id="confirm" class="card center" hidden>
+      <div class="big-icon" aria-hidden="true">✉️</div>
+      <h2>Sana bir gizli not gönderildi</h2>
+      <p class="note">Bu not sadece bir kez okunabilir. Gösterdiğin an sunucudan silinecek ve bir daha açılamayacak.</p>
+      <div class="actions actions-center">
+        <button class="btn" id="reveal" type="button">Notu göster</button>
+      </div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+
+    <!-- 2. Not -->
+    <section id="shown" class="card" hidden>
+      <h2>Gizli not</h2>
+      <pre id="secret" class="secret"></pre>
+      <div class="actions">
+        <button class="btn" id="copy" type="button">Notu kopyala</button>
+      </div>
+      <p class="warn">Bu not sunucudan silindi. Sayfayı kapatınca bir daha göremezsin; gerekiyorsa şimdi bir yere kaydet.</p>
+    </section>
+
+    <!-- 3. Not yok -->
+    <section id="gone" class="card center" hidden>
+      <div class="big-icon" aria-hidden="true">🔥</div>
+      <h2 id="gone-title">Bu not artık yok</h2>
+      <p class="note" id="gone-text">Daha önce okunmuş ya da süresi dolmuş. Not bir kez okununca kalıcı olarak silinir.</p>
+      <div class="actions actions-center">
+        <a class="btn btn-ghost" href="/">Kendi notunu oluştur</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="trust">
+    <span>Uçtan uca şifreli</span>
+    <span>Kendini imha eder</span>
+    <span>Sunucu okuyamaz</span>
+    <a href="https://github.com/yusufiyilmaz/birkez" target="_blank" rel="noopener noreferrer">Açık kaynak</a>
+  </footer>
+</div>
+<script type="module" src="/read.js"></script>
+</body>
+</html>
