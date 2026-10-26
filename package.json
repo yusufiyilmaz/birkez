@@ -4,8 +4,17 @@
   "private": true,
   "type": "module",
   "description": "Self-destructing, end-to-end encrypted one-time notes",
+  "author": "Yusuf Yılmaz (https://github.com/yusufiyilmaz)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufiyilmaz/birkez.git"
+  },
+  "bugs": "https://github.com/yusufiyilmaz/birkez/issues",
+  "keywords": ["one-time-secret", "end-to-end-encryption", "web-crypto", "aes-gcm", "cloudflare-workers", "d1", "security"],
   "scripts": {
     "test": "node --test",
+    "test:e2e": "node --test e2e/browser.e2e.js",
+    "screenshots": "node e2e/screenshots.js",
     "db:local": "wrangler d1 migrations apply birkez --local",
     "dev": "wrangler dev --port 8791"
   },

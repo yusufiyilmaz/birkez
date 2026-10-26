@@ -41,6 +41,16 @@ function json(data, status = 200) {
 }
 
 const error = (message, status) => json({ error: message }, status);
+
+// IP başına hız sınırı: dakikada 10 not oluşturma, 30 okuma denemesi (wrangler.jsonc).
+// Script ile binlerce not açıp ücretsiz kotayı doldurmayı ve fiş tahminini engeller.
+async function rateLimited(limiter, request) {
+  if (!limiter) return false;
+  const ip = request.headers.get("CF-Connecting-IP") || "yerel";
+  const { success } = await limiter.limit({ key: ip });
+  return !success;
+}
+const TOO_MANY = "Çok fazla istek gönderdin. Bir dakika bekleyip tekrar dene.";
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
 async function sha256(text) {
@@ -132,14 +142,20 @@ async function handle(request, env) {
   const method = request.method;
 
   if (pathname === "/api/notes") {
-    return method === "POST" ? createNote(request, env) : error("Yöntem desteklenmiyor.", 405);
+    if (method !== "POST") return error("Yöntem desteklenmiyor.", 405);
+    if (await rateLimited(env.CREATE_LIMITER, request)) return error(TOO_MANY, 429);
+    return createNote(request, env);
   }
   const m = pathname.match(/^\/api\/notes\/([^/]+)(\/read)?$/);
   if (m) {
     const [, id, read] = m;
     if (!ID_RE.test(id)) return error(GONE, 404);
     // Okuma POST ile: link önizleme botları ve tarayıcı ön yüklemeleri GET yapar, notu yakamaz.
-    if (read) return method === "POST" ? readNote(id, request, env) : error("Yöntem desteklenmiyor.", 405);
+    if (read) {
+      if (method !== "POST") return error("Yöntem desteklenmiyor.", 405);
+      if (await rateLimited(env.READ_LIMITER, request)) return error(TOO_MANY, 429);
+      return readNote(id, request, env);
+    }
     return method === "GET" ? noteExists(id, env) : error("Yöntem desteklenmiyor.", 405);
   }
   if (pathname.startsWith("/api/")) return error("Bulunamadı.", 404);

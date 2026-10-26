@@ -10,6 +10,10 @@ let salt = null;
 // Anahtarı adres çubuğundan ve tarayıcı geçmişinden hemen sil (sadece bellekte kalsın)
 history.replaceState(null, "", location.pathname);
 
+// Aynı sekmeye linkin tamamı sonradan yapıştırılırsa tarayıcı sayfayı yeniden yüklemez
+// (sadece # kısmı değişti sayar); anahtarı okuyabilmek için sayfayı baştan çalıştır.
+addEventListener("hashchange", () => location.reload());
+
 function show(section) {
   for (const s of ["loading", "confirm", "shown", "gone"]) $(s).hidden = s !== section;
 }
@@ -56,7 +60,8 @@ $("reveal-form").addEventListener("submit", async (event) => {
   try {
     rawKey = await deriveKey({ key, password: $("password").value, salt });
   } catch (e) {
-    return fail(e.message.includes("parola") ? "Parolayı yaz." : "Linkteki anahtar geçersiz.");
+    if (e.code === "PASSWORD_REQUIRED") return fail("Parolayı yaz.");
+    return gone("Link hatalı", "Linkteki anahtar eksik ya da bozuk. Linkin tamamını kopyaladığından emin ol.");
   }
 
   try {

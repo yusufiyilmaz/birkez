@@ -17,6 +17,12 @@
     }
   ],
 
+  // Kötüye kullanıma karşı IP başına sınırlar (Cloudflare Rate Limiting, ücretsiz)
+  "ratelimits": [
+    { "name": "CREATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+    { "name": "READ_LIMITER", "namespace_id": "1002", "simple": { "limit": 30, "period": 60 } }
+  ],
+
   // Saatte bir süresi dolmuş notları temizle
   "triggers": { "crons": ["0 * * * *"] }
 }

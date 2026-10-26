@@ -30,7 +30,10 @@ after(async () => {
 });
 
 const BASE = "http://birkez.test";
-const call = (path, init = {}) => worker.fetch(new Request(BASE + path, init), env);
+// Her istek farklı bir IP'den geliyormuş gibi: testler hız sınırına takılmasın
+const randomIp = () => `10.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+const call = (path, init = {}) =>
+  worker.fetch(new Request(BASE + path, { ...init, headers: { "CF-Connecting-IP": randomIp(), ...init.headers } }), env);
 const post = (path, body, headers = { "Content-Type": "application/json" }) =>
   call(path, { method: "POST", headers, body: typeof body === "string" ? body : JSON.stringify(body) });
 
@@ -144,6 +147,17 @@ test("geçersiz istekler reddedilir", async () => {
   assert.equal((await call("/api/notes")).status, 405);
   assert.equal((await read("kisa-id", enc.token)).status, 404);
   assert.equal((await read("AAAAAAAAAAAAAAAAAAAAAA", enc.token)).status, 404);
+});
+
+test("hız sınırı: aynı IP dakikada 10'dan fazla not oluşturamaz", async () => {
+  const enc = await encryptNote("spam");
+  const headers = { "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.7" };
+  const statuses = [];
+  for (let i = 0; i < 12; i++) statuses.push((await post("/api/notes", payload(enc), headers)).status);
+  assert.deepEqual(statuses.slice(0, 10), Array(10).fill(201));
+  assert.deepEqual(statuses.slice(10), [429, 429]);
+  // Başka bir IP etkilenmez
+  assert.equal((await post("/api/notes", payload(enc))).status, 201);
 });
 
 test("API cevaplarında güvenlik başlıkları var ve önbelleğe alınmıyor", async () => {

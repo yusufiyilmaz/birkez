@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { encryptNote, decryptNote, deriveKey, authToken, toBase64Url, fromBase64Url } from "../public/crypto.js";
+import {
+  encryptNote, decryptNote, deriveKey, authToken, toBase64Url, fromBase64Url, pad, unpad, PAD_BUCKETS,
+} from "../public/crypto.js";
 
 test("şifrelenen not aynı anahtarla geri çözülür", async () => {
   const note = "Wi-Fi şifresi: Çok$Gizli_2026 🔐";
@@ -68,6 +70,32 @@ test("okuma fişi anahtarı ele vermez", async () => {
   assert.notEqual(enc.token, enc.key);
   assert.equal(enc.salt, null);
   assert.equal(await authToken(await deriveKey({ key: enc.key })), enc.token);
+});
+
+test("uzunluk gizleme: kısa ve orta boy notlar sunucuda aynı boyda görünür", async () => {
+  const short = await encryptNote("evet");
+  const longer = await encryptNote("IBAN: TR12 0006 4000 0011 2345 6789 01 — Ahmet Yılmaz, kira ödemesi");
+  assert.equal(short.ciphertext.length, longer.ciphertext.length);
+  const big = await encryptNote("ş".repeat(10_000)); // en büyük not, en büyük kovaya sığar
+  assert.equal(await decryptNote(big), "ş".repeat(10_000));
+});
+
+test("pad/unpad gidiş-dönüş ve kova boyları", () => {
+  for (const n of [0, 1, 251, 252, 1000, 40_000]) {
+    const data = Uint8Array.from({ length: n }, (_, i) => i % 256);
+    const padded = pad(data);
+    assert.ok(PAD_BUCKETS.includes(padded.length));
+    assert.deepEqual(unpad(padded), data);
+  }
+});
+
+test("hatalar mesaja bakmadan ayırt edilebilir (err.code)", async () => {
+  const enc = await encryptNote("x", "kedi123");
+  await assert.rejects(deriveKey({ key: enc.key, salt: enc.salt }), { code: "PASSWORD_REQUIRED" });
+  await assert.rejects(deriveKey({ key: "bozuk" }), { code: "BAD_KEY" });
+  await assert.rejects(deriveKey({ key: "" }), { code: "BAD_KEY" });
+  await assert.rejects(decryptNote({ ...enc, password: "yanlis" }), { code: "DECRYPT_FAILED" });
+  await assert.rejects(encryptNote(" "), { code: "EMPTY" });
 });
 
 test("base64url gidiş-dönüş", () => {

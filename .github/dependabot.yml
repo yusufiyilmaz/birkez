@@ -1,0 +1,11 @@
+# Bağımlılıklar ve GitHub Actions sürümleri için haftalık güncelleme önerileri
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

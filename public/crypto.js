@@ -13,6 +13,38 @@ const MAX_LENGTH = 10_000; // karakter
 const MAX_PASSWORD = 200;
 export const PBKDF2_ITERATIONS = 600_000; // OWASP'ın PBKDF2-SHA256 önerisi
 
+// Uzunluk gizleme: sunucu şifreli verinin boyunu görür. Not bu boylardan birine
+// doldurulur, böylece "evet" ile 200 karakterlik bir IBAN notu aynı boyda görünür.
+// 10.000 karakter UTF-8'de en fazla 40.000 bayt eder; en büyük kova onu karşılar.
+export const PAD_BUCKETS = [256, 1024, 4096, 16384, 40960];
+const PAD_VERSION = 1;
+
+/** Hata türünü mesaja bakmadan anlamak için: err.code */
+export class NoteError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.code = code;
+  }
+}
+
+// [sürüm 1 bayt][uzunluk 4 bayt][not][sıfırlar]
+export function pad(data) {
+  const size = PAD_BUCKETS.find((b) => b >= data.length + 5);
+  if (!size) throw new NoteError("TOO_LONG", "Not çok uzun.");
+  const out = new Uint8Array(size);
+  out[0] = PAD_VERSION;
+  new DataView(out.buffer).setUint32(1, data.length);
+  out.set(data, 5);
+  return out;
+}
+
+export function unpad(padded) {
+  if (padded[0] !== PAD_VERSION || padded.length < 5) throw new NoteError("DECRYPT_FAILED", "Not biçimi tanınmadı.");
+  const length = new DataView(padded.buffer, padded.byteOffset).getUint32(1);
+  if (length > padded.length - 5) throw new NoteError("DECRYPT_FAILED", "Not biçimi tanınmadı.");
+  return padded.subarray(5, 5 + length);
+}
+
 // Base64url: linkte sorun çıkarmayan base64 (+ yerine -, / yerine _, = yok)
 export function toBase64Url(bytes) {
   let bin = "";
@@ -45,10 +77,15 @@ const xor = (a, b) => a.map((x, i) => x ^ b[i]);
 
 /** Notu açan asıl anahtar: parola yoksa link anahtarının kendisi. */
 export async function deriveKey({ key, password = "", salt = null }) {
-  const linkKey = fromBase64Url(key);
-  if (linkKey.length !== 32) throw new Error("Linkteki anahtar geçersiz.");
+  let linkKey;
+  try {
+    linkKey = fromBase64Url(key || "");
+  } catch {
+    linkKey = new Uint8Array();
+  }
+  if (linkKey.length !== 32) throw new NoteError("BAD_KEY", "Linkteki anahtar geçersiz.");
   if (!salt) return linkKey;
-  if (!password) throw new Error("Bu not parolayla korunuyor.");
+  if (!password) throw new NoteError("PASSWORD_REQUIRED", "Bu not parolayla korunuyor.");
   return xor(linkKey, await passwordBytes(password, fromBase64Url(salt)));
 }
 
@@ -67,9 +104,11 @@ export async function authToken(rawKey) {
  *   ciphertext, iv, salt ve token sunucuya gider; key sadece linkin # kısmına yazılır.
  */
 export async function encryptNote(text, password = "") {
-  if (!text || !text.trim()) throw new Error("Not boş olamaz.");
-  if (text.length > MAX_LENGTH) throw new Error(`Not en fazla ${MAX_LENGTH} karakter olabilir.`);
-  if (password.length > MAX_PASSWORD) throw new Error(`Parola en fazla ${MAX_PASSWORD} karakter olabilir.`);
+  if (!text || !text.trim()) throw new NoteError("EMPTY", "Not boş olamaz.");
+  if (text.length > MAX_LENGTH) throw new NoteError("TOO_LONG", `Not en fazla ${MAX_LENGTH} karakter olabilir.`);
+  if (password.length > MAX_PASSWORD) {
+    throw new NoteError("PASSWORD_TOO_LONG", `Parola en fazla ${MAX_PASSWORD} karakter olabilir.`);
+  }
 
   const linkKey = crypto.getRandomValues(new Uint8Array(32)); // 256 bit, her not için yeni
   const salt = password ? crypto.getRandomValues(new Uint8Array(16)) : null;
@@ -79,7 +118,7 @@ export async function encryptNote(text, password = "") {
   const encrypted = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     await importAesKey(rawKey, "encrypt"),
-    new TextEncoder().encode(text),
+    pad(new TextEncoder().encode(text)),
   );
 
   return {
@@ -98,14 +137,11 @@ export async function encryptNote(text, password = "") {
  */
 export async function decryptNote({ ciphertext, iv, key, password, salt, rawKey }) {
   const cryptoKey = await importAesKey(rawKey || (await deriveKey({ key, password, salt })), "decrypt");
+  let plain;
   try {
-    const plain = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: fromBase64Url(iv) },
-      cryptoKey,
-      fromBase64Url(ciphertext),
-    );
-    return new TextDecoder().decode(plain);
+    plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64Url(iv) }, cryptoKey, fromBase64Url(ciphertext));
   } catch {
-    throw new Error("Not çözülemedi: anahtar yanlış ya da not değiştirilmiş.");
+    throw new NoteError("DECRYPT_FAILED", "Not çözülemedi: anahtar yanlış ya da not değiştirilmiş.");
   }
+  return new TextDecoder().decode(unpad(new Uint8Array(plain)));
 }
