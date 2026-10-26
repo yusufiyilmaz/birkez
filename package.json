@@ -10,6 +10,9 @@
     "dev": "wrangler dev --port 8791"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "devDependencies": {
     "wrangler": "^4.152.0"
   }
