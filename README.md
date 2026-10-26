@@ -21,12 +21,14 @@ Self-destructing notes that can be read only once. Share passwords, IBANs or Wi-
 - **Read-once guarantee.** A note is deleted in the same query that reads it (`DELETE ... RETURNING`); even if two people open the link at the same moment, only one of them sees it.
 - **Safe from link-preview bots.** When WhatsApp or Telegram fetches the link to build a preview, the note is not burned; it is fetched only after the "Show note" button is pressed.
 - **Expiry.** Unread notes are deleted when the chosen time (1 hour / 1 day / 7 days) runs out.
+- **Optional extra password.** The real key is the link key XOR a PBKDF2-SHA256 (600,000 rounds) hash of the password, so a leaked link alone cannot open the note. The password never leaves the browser.
+- **Wrong passwords don't burn the note.** The browser proves it holds the right key with a read token derived from it; the server stores only the token's SHA-256 and hands the note out only for a matching token. After 5 wrong attempts the note is deleted. This also means someone who knows only the note id (without the # key) cannot burn it.
 
 ## Roadmap
 
 - [x] Encryption / decryption in the browser
 - [x] Server (Cloudflare Workers + D1 database)
 - [x] Read page with the "Show note" step
-- [ ] Expiry and optional extra password
-- [ ] Tests
+- [x] Expiry and optional extra password
+- [x] Tests
 - [ ] Deploy: not.yilmazyusuf.dev

@@ -24,6 +24,12 @@
       <h2><label for="note">Gizli not oluştur</label></h2>
       <textarea id="note" maxlength="10000" placeholder="Gizli notunu buraya yaz..." required></textarea>
       <div class="counter"><span id="count">0</span> / 10.000</div>
+      <label class="toggle"><input type="checkbox" id="use-password"> Ek parola koy (isteğe bağlı)</label>
+      <div id="password-box" hidden>
+        <input id="password" class="field field-text" type="password" maxlength="200" autocomplete="new-password"
+               placeholder="Alıcının girmesi gereken parola" aria-label="Ek parola">
+        <p class="hint">Link başkasının eline geçse bile parolayı bilmeyen notu açamaz.</p>
+      </div>
       <div class="row">
         <fieldset class="ttl">
           <legend>Silinme süresi:</legend>
@@ -46,6 +52,7 @@
         <button class="btn btn-ghost" id="again" type="button">Yeni not</button>
       </div>
       <p class="warn">Linki kendin açma: açtığın an not silinir ve alıcı göremez.</p>
+      <p class="warn" id="password-tip" hidden>Parolayı linkle aynı yerden gönderme. Örneğin linki WhatsApp'tan, parolayı telefonda söyle.</p>
       <p class="note">Not, okunduğunda ya da <strong id="expires"></strong> okunmazsa kendiliğinden silinir. Bu link bir daha gösterilmeyecek.</p>
     </section>
   </main>

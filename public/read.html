@@ -21,9 +21,14 @@
       <div class="big-icon" aria-hidden="true">✉️</div>
       <h2>Sana bir gizli not gönderildi</h2>
       <p class="note">Bu not sadece bir kez okunabilir. Gösterdiğin an sunucudan silinecek ve bir daha açılamayacak.</p>
-      <div class="actions actions-center">
-        <button class="btn" id="reveal" type="button">Notu göster</button>
-      </div>
+      <form id="reveal-form">
+        <p class="note" id="password-note" hidden>🔒 Bu not parolayla korunuyor. Parolayı gönderen kişiden öğren.</p>
+        <div class="stack">
+          <input id="password" class="field field-text" type="password" autocomplete="off"
+                 placeholder="Parola" aria-label="Notun parolası" hidden>
+          <button class="btn" id="reveal" type="submit">Notu göster</button>
+        </div>
+      </form>
       <p id="error" class="error" role="alert" hidden></p>
     </section>
 

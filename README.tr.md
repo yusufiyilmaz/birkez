@@ -21,12 +21,14 @@ Bir kez okunduktan sonra kendini imha eden notlar. Şifre, IBAN ya da Wi-Fi şif
 - **Tek okuma garantisi.** Not, okunduğu işlemde silinir (`DELETE ... RETURNING`); iki kişi aynı anda açmaya çalışsa bile sadece biri görür.
 - **Link önizleme botlarına karşı korumalı.** WhatsApp ya da Telegram linki önizlemek için açtığında not yanmaz; not ancak "Notu göster" butonuna basılınca alınır.
 - **Süre sınırı.** Okunmayan notlar seçilen süre (1 saat / 1 gün / 7 gün) dolunca silinir.
+- **İsteğe bağlı ek parola.** Asıl anahtar, link anahtarı ile parolanın PBKDF2-SHA256 (600.000 tur) özetinin XOR'udur; link tek başına başkasının eline geçse bile notu açamaz. Parola tarayıcıdan hiç çıkmaz.
+- **Yanlış parola notu yakmaz.** Tarayıcı, doğru anahtara sahip olduğunu anahtardan türetilen bir okuma fişiyle kanıtlar; sunucu fişin sadece SHA-256 özetini saklar ve notu yalnızca tutan fişe verir. 5 yanlış denemeden sonra not silinir. Böylece linkin sadece numarasını bilen biri (# anahtarı olmadan) notu yakamaz.
 
 ## Yol haritası
 
 - [x] Tarayıcıda şifreleme / çözme
 - [x] Sunucu (Cloudflare Workers + D1 veritabanı)
 - [x] Okuma sayfası ve "Notu göster" adımı
-- [ ] Süre sınırı ve isteğe bağlı ek parola
-- [ ] Testler
+- [x] Süre sınırı ve isteğe bağlı ek parola
+- [x] Testler
 - [ ] Yayın: not.yilmazyusuf.dev

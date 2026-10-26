@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { encryptNote, decryptNote, toBase64Url, fromBase64Url } from "../public/crypto.js";
+import { encryptNote, decryptNote, deriveKey, authToken, toBase64Url, fromBase64Url } from "../public/crypto.js";
 
 test("şifrelenen not aynı anahtarla geri çözülür", async () => {
   const note = "Wi-Fi şifresi: Çok$Gizli_2026 🔐";
@@ -41,6 +41,33 @@ test("anahtar linke uygun: 43 karakter, sadece base64url harfleri", async () => 
 test("boş ve çok uzun not reddedilir", async () => {
   await assert.rejects(encryptNote("   "), /boş/);
   await assert.rejects(encryptNote("a".repeat(10_001)), /en fazla/);
+});
+
+test("parolalı not: link + doğru parola ile çözülür", async () => {
+  const enc = await encryptNote("parolalı gizli", "kedi123");
+  assert.match(enc.salt, /^[A-Za-z0-9_-]{22}$/);
+  assert.equal(await decryptNote({ ...enc, password: "kedi123" }), "parolalı gizli");
+});
+
+test("parolalı not: link tek başına ya da yanlış parola yetmez", async () => {
+  const enc = await encryptNote("parolalı gizli", "kedi123");
+  await assert.rejects(decryptNote({ ...enc, password: "" }), /parolayla korunuyor/);
+  await assert.rejects(decryptNote({ ...enc, password: "kedi124" }), /çözülemedi/);
+});
+
+test("okuma fişi: aynı anahtar ve parola aynı fişi verir, yanlış parola farklı fiş verir", async () => {
+  const enc = await encryptNote("x", "kedi123");
+  const right = await authToken(await deriveKey({ key: enc.key, password: "kedi123", salt: enc.salt }));
+  const wrong = await authToken(await deriveKey({ key: enc.key, password: "kedi12", salt: enc.salt }));
+  assert.equal(right, enc.token);
+  assert.notEqual(wrong, enc.token);
+});
+
+test("okuma fişi anahtarı ele vermez", async () => {
+  const enc = await encryptNote("x");
+  assert.notEqual(enc.token, enc.key);
+  assert.equal(enc.salt, null);
+  assert.equal(await authToken(await deriveKey({ key: enc.key })), enc.token);
 });
 
 test("base64url gidiş-dönüş", () => {

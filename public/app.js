@@ -9,19 +9,31 @@ $("note").addEventListener("input", () => {
   $("error").hidden = true;
 });
 
+$("use-password").addEventListener("change", () => {
+  $("password-box").hidden = !$("use-password").checked;
+  if ($("use-password").checked) $("password").focus();
+  else $("password").value = "";
+});
+
 $("create").addEventListener("submit", async (event) => {
   event.preventDefault();
   const ttl = Number(new FormData($("create")).get("ttl"));
+  const password = $("use-password").checked ? $("password").value : "";
   $("error").hidden = true;
+  if ($("use-password").checked && !password) {
+    $("error").textContent = "Parola kutusu boş. Parola istemiyorsan işareti kaldır.";
+    $("error").hidden = false;
+    return;
+  }
   $("submit").disabled = true;
   $("submit").textContent = "Şifreleniyor...";
 
   try {
-    const { ciphertext, iv, key } = await encryptNote($("note").value);
+    const { ciphertext, iv, salt, token, key } = await encryptNote($("note").value, password);
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ciphertext, iv, ttl }),
+      body: JSON.stringify({ ciphertext, iv, ttl, token, salt }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Not kaydedilemedi. Biraz sonra tekrar dene.");
@@ -31,7 +43,11 @@ $("create").addEventListener("submit", async (event) => {
     $("link").value = link;
     $("whatsapp").href = "https://wa.me/?text=" + encodeURIComponent(`Sana bir gizli not gönderdim, bir kez okunabilir: ${link}`);
     $("expires").textContent = TTL_TEXT[ttl];
-    $("note").value = ""; // açık metni sayfada tutma
+    $("password-tip").hidden = !password;
+    $("note").value = ""; // açık metni ve parolayı sayfada tutma
+    $("password").value = "";
+    $("use-password").checked = false;
+    $("password-box").hidden = true;
     $("count").textContent = "0";
     $("create").hidden = true;
     $("done").hidden = false;
